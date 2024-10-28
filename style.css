@@ -1,0 +1,382 @@
+ body{
+            background-color: #242526;
+        }
+        #map{
+            z-index: 10;
+        }
+        
+        .leaflet-routing-collapse-btn{
+            cursor: pointer;
+        }
+        
+        
+        .leaflet-routing-alt {
+            max-height: 200px;
+        }
+        .leaflet-routing-alt-minimized{
+            max-height: 100px;
+        }
+        code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+		body {
+			margin: 0;
+			padding: 50px;
+            font-family:  "Montserrat", sans-serif;
+            transition: transform 2s ease; 
+		}
+       
+        .leaflet-marker-icon {
+            cursor: pointer; /* Thay đổi con trỏ thành bàn tay */
+            z-index: 1000000000;
+
+
+        }
+         .space {
+            display: block;
+            position: relative;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 15px;
+            cursor: move;
+        }
+        #form-0-text{
+            display: block;
+        }
+        #form-1
+        {
+            margin-bottom: 10px;
+        }
+        #overlay{
+            top:0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: none;
+            z-index: 51;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            padding-top: 5px;
+            border: 1px solid black;
+            z-index: 10000;
+        }
+        .btn {
+            padding: 5px 12px; /* Tăng kích thước padding để nút lớn hơn */
+            font-size: 15px; /* Tăng kích thước chữ */
+            border-radius: 10px; /* Làm tròn các góc */
+            background-color: #1c1e21; /* Màu nền */
+            color: #e4e6eb;
+            border: 1px solid; /* Viền cho nút */
+            /* cursor: pointer; */
+            transition: background-color 0.3s ease;
+        }   
+        .btn-add:active{
+            background-color: #e0e0e0;
+        }
+        .btn-select{
+            margin-top: 15px;
+        }
+        .btn:hover {
+            background-color: #3a3b3c; /* Màu nền khi hover */
+        }
+        #nameInput{
+            font-size: 20px;
+        }
+        .modal-form{
+            display: block;
+        }
+        .modal-content {
+            text-align: center;
+        }
+        .modal-content > label,.modal-content > select{
+            font-size: 20px;
+        }
+        #iconSelector {
+            display: block;
+            margin: 10px 0;
+            font-size:20px;
+        }
+        .slider-container {
+            width: 300px;
+            margin: 20px auto;
+            text-align: center;
+        }
+        #radiusInput{
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 8px;
+            background: #ddd;
+            border-radius: 5px;
+            outline: none;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+        #radiusInput:hover{
+            opacity: 1;
+        }
+        #radiusInput::-webkit-slider-thumb{
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            background: #f33a58;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        #radiusInput::-moz-range-thumb{
+            width: 20px;
+            height: 20px;
+            background: #f33a58;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+        .radius-value {
+            margin-top: 10px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .noti {
+            position: fixed;
+            top: -100px;
+            /* Ban đầu nằm ngoài màn hình */
+            left: 50%;
+            transform: translateX(-50%);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            font-size: 20px;
+            transition: top 0.5s ease-in-out;
+            /* Hiệu ứng trượt */
+            z-index: 1000;
+        }
+        .noti-fail{
+            background-color:red;
+            
+        }
+        .noti-success{
+            background-color: #4CAF50;
+            
+        }
+        body {
+            background-color: #1e1e1e;
+            margin: 0;
+            padding: 0;
+           
+        }
+
+        /* Chat button */
+        #chat-button {
+            width: 60px;
+            height: 60px;
+            background-color: #138f73;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #chat-button:hover {
+            transform: scale(1.4);
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Chat box */
+        #chat-box {
+            width: 350px;
+            height: 500px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            z-index: 9999;
+            transform: translateY(50px);
+            visibility: hidden;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            scrollbar-width: thin; /* Thay đổi độ rộng cho Firefox */
+            scrollbar-color: #ffffff30 #242526; 
+        }
+
+        #chat-box.open {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        #chat-box.closing {
+            opacity: 0;
+            transform: translateY(50px);
+            visibility: hidden;
+        }
+
+        /* Header with avatar and name */
+        #chat-header {
+            background-color: #242526;
+            border-radius: 8px 8px 0 0;
+            box-shadow: #0000001a 0 1px 2px 0;
+            cursor: pointer;
+            color: #e0e0e0;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+        #chat-header:hover{
+            background-color: 	#303030;
+            transition: all 0.5s;
+        }
+        #chat-header img {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        #chat-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+        
+        #chat-messages {
+            background-color: #242526;
+            flex-grow: 1;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            max-height: 400px;
+            scrollbar-width: thin;            
+        }
+       
+        .message {
+            padding: 10px;
+            color: #e0e0e0;
+            cursor: pointer;
+            display: inline;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+            border-radius: 20px;
+            padding: 10px 15px;
+            max-width: 60%;
+            position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+            word-wrap: break-word; /* Từ dài sẽ tự động xuống dòng */
+            overflow-wrap: break-word; /* Thêm tính năng cho việc xuống dòng từ dài */
+            word-break: normal; /* Không bẻ từ trừ khi cần thiết */
+            animation: slideIn 0.3s forwards;
+        } 
+        .sent p{
+            text-align: left;
+        }
+        .received .time{
+            text-align: right;
+        }
+        .message .text {
+            margin: 0;
+        }
+        
+        .sent {
+            background-color: #138f73;
+            color: #fff;
+            margin-left: auto;
+            text-align: right;
+        }
+        .received {
+            justify-content: flex-start;
+            background-color: #303030;
+            margin-right: auto;
+        }
+
+        /* Time below each message */
+        .time {
+            display: none;
+            animation: all 0.3s;
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        .sent .time{
+            color: #fff;
+        }
+        /* Input box for sending messages */
+        #chat-input {
+            background-color: #242526;
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid;
+        }
+
+        #message-input {
+            color: #fff;
+            background-color: #303030;
+            border: none;
+            flex-grow: 1;
+            padding: 10px;
+            border-radius: 20px;
+            outline: none;
+            font-size: 16px;
+        }
+
+        #send-button {
+            display: inline;
+            margin-left: 10px;
+            font-size: 20px;
+            /* background-color: #0066cc; */
+            color: #138f73;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        #send-button:hover {
+            transform: scale(1.4);
+        }
+
+        /* Animation for message appearance */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+         .notification {
+            display: none;
+            width: 15px;
+            height: 15px;
+            background-color: #ff3040;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            right: 0;
+            border: 1px solid black; /* For the dark background effect */
+        }

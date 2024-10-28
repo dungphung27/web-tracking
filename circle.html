@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css" />
+
+    <title>Smooth Chatbox</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        /* Chat button */
+        #chat-button {
+            width: 60px;
+            height: 60px;
+            background-color: #0084ff;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #chat-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0px 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Chat box */
+        #chat-box {
+            width: 350px;
+            height: 500px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.15);
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+            transform: translateY(50px);
+            visibility: hidden;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+        }
+
+        #chat-box.open {
+            opacity: 1;
+            transform: translateY(0);
+            visibility: visible;
+        }
+
+        #chat-box.closing {
+            opacity: 0;
+            transform: translateY(50px);
+            visibility: hidden;
+        }
+
+        /* Header with avatar and name */
+        #chat-header {
+            background-color: #0084ff;
+            color: white;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        #chat-header img {
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        #chat-header h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        /* Chat messages container */
+        #chat-messages {
+            flex-grow: 1;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            max-height: 400px;
+            scrollbar-width: thin;
+            scrollbar-color: #0084ff #f0f0f0;
+        }
+
+        
+        /* Chat message bubbles */
+        .message-container {
+            cursor: pointer;
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            
+            position: relative;
+            opacity: 0;
+            transform: translateY(20px);
+           
+            animation: slideIn 0.3s forwards;
+        }
+        .message p, .message span {
+            cursor: text;
+        }
+        .sent p{
+            text-align: left;
+        }
+        .received .time{
+            text-align: right;
+        }
+        .message .text {
+            margin: 0;
+        }
+        
+        .sent {
+            color: #fff;
+            margin-left: auto;
+            text-align: right;
+        }
+        .received {
+            justify-content: flex-start;
+            /* background-color: #e5e5ea; */
+            margin-right: auto;
+        }
+
+        /* Time below each message */
+        .message .time {
+            display: none;
+            animation: all 0.3s;
+            font-size: 12px;
+            color: #888;
+            margin-top: 5px;
+        }
+        .sent .time{
+            color: #fff;
+        }
+        /* Input box for sending messages */
+        #chat-input {
+            display: flex;
+            padding: 10px;
+            border-top: 1px solid #ddd;
+        }
+
+        #message-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 20px;
+            outline: none;
+            font-size: 16px;
+        }
+
+        #send-button {
+            margin-left: 10px;
+            background-color: #0084ff;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+        .message-container {
+			position: relative;
+			display: flex;
+			align-items: center;
+		}
+        .message {
+            max-width: 60%;
+            word-wrap: break-word; /* Từ dài sẽ tự động xuống dòng */
+            overflow-wrap: break-word; /* Thêm tính năng cho việc xuống dòng từ dài */
+            word-break: normal; /* Không bẻ từ trừ khi cần thiết */
+			background-color: #2e2e2e;
+			border-radius: 20px;
+			padding: 10px 15px;
+			color: white;
+			font-family: -apple-system, BlinkMacSystemFont, "San Francisco",
+				"Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
+			transition: background-color 0.3s ease;
+		}
+        #send-button:hover {
+            transform: scale(1.1);
+        }
+         .icons {
+			display: flex;
+			margin: 0 5px;
+			opacity: 0;
+			align-items: center;
+			align-content: center;
+			justify-content: center;
+			width: 30px;
+			height: 30px;
+			border-radius: 50%;
+			background-color: none;
+			transition: all 0.4s ease;
+		}
+		.icon {
+			font-size: 16px;
+			align-self: center;
+			color: #999;
+			cursor: pointer;
+            
+			transition: all 0.5s ease ;
+		}
+        .icons:hover{
+            background-color: #2e2e2e;
+        }
+
+		.icon:hover {
+			color: white;
+		}
+
+		/* Hiển thị biểu tượng khi hover */
+		.message-container:hover .icons {
+			opacity: 1;
+		}
+
+
+        /* Hiển thị icon khi hover vào message */
+      
+        /* Animation for message appearance */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Chat button -->
+    <div id="chat-button">💬</div>
+
+    <!-- Chat box -->
+    <div id="chat-box">
+        <!-- Header -->
+        <div id="chat-header">
+            <img src="dungdeptrai.jpeg" alt="Avatar">
+            <h3>Username</h3>
+        </div>
+
+        <!-- Chat messages -->
+        <div id="chat-messages">
+            <div class="message-container received">
+            <div class="message ">
+                <p class="text">Hello! How are you?</p>
+                <span class="time">12:00</span>
+            </div>
+            <div class="icons">
+                <span class="icon dots"><i class="fa fa-ellipsis-v" aria-hidden="true"></i>
+</span>
+            </div>
+            </div>
+            <div class="message-container received">
+            <div class="message ">
+                <p class="text">What are you doing today?</p>
+                <span class="time">12:01</span>
+            </div>
+            <div class="icons">
+                <span class="icon dots"><i class="fa fa-ellipsis-v" aria-hidden="true"></i></span>
+            </div>
+            </div>
+            <div class="message-container sent">
+                <div class="icons">
+                    <span class="icon dots"><i class="fa fa-ellipsis-v" aria-hidden="true"></i></span>
+                </div>
+            <div class="message">
+                <p class="text">I'm good, just working on a projechhhhhhht!</p>
+                <span class="time">12:02</span>
+            </div>
+            </div>
+        </div>
+
+        <!-- Input box -->
+        <div id="chat-input">
+            <input type="text" id="message-input" placeholder="Type a message...">
+            <button id="send-button">➤</button>
+        </div>
+    </div>
+
+    <script>
+        const chatButton = document.getElementById('chat-button');
+        const chatBox = document.getElementById('chat-box');
+        let isClosing = false;
+
+        // Toggle chat box open/close
+        chatButton.addEventListener('click', () => {
+            if (isClosing) return;
+            if (chatBox.classList.contains('open')) {
+                // Close with smooth animation
+                chatBox.classList.add('closing');
+                isClosing = true;
+                setTimeout(() => {
+                    chatBox.classList.remove('open', 'closing');
+                    isClosing = false;
+                }, 400); // Time matches the transition duration
+            } else {
+                // Open chat box
+                chatBox.classList.add('open');
+            }
+        });
+
+        // Send a new message
+        const sendButton = document.getElementById('send-button');
+        const messageInput = document.getElementById('message-input');
+        const chatMessages = document.getElementById('chat-messages');
+        let messageElements = Array.from(document.getElementsByClassName('message'))
+        toggle_time()
+        function toggle_time()
+        {
+        messageElements.forEach(message =>{
+            let timeElement = message.querySelector(".time")
+            message.onclick = (() =>{
+                if(timeElement.style.display === "none")
+                timeElement.style.display = "block";
+                else
+                timeElement.style.display = "none";
+            })
+        })
+        }
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+        receiveMessage("111")
+        function getTime()
+        {
+         const time = new Date();
+            // Lấy giờ và phút
+            let hours = time.getHours().toString().padStart(2, '0'); // Thêm '0' vào trước nếu cần
+            let minutes = time.getMinutes().toString().padStart(2, '0');
+
+            // Lấy ngày, tháng và năm
+            let day = time.getDate();
+            let month = time.getMonth() + 1; // Tháng bắt đầu từ 0 nên cần +1
+            let year = time.getFullYear();
+
+            // Định dạng kết quả
+
+            const timeStr = `${hours}:${minutes} ${day}/${month}/${year}`;
+            return {
+                time: {
+                    hours: hours,
+                    minutes: minutes,
+                    day: day,
+                    month: month,
+                    year: year,
+                },
+                timeStr: timeStr
+            };
+        }
+        function sendMessage() {
+            const messageText = messageInput.value;
+            if (messageText.trim() !== '') {
+                const newMessage = document.createElement('div');
+                newMessage.classList.add('message', 'sent');
+                
+                // Get current time
+                const formattedTime = getTime().timeStr
+                
+                // Add message text and time
+                newMessage.innerHTML = `<p class="text">${messageText}</p><span class="time">${formattedTime}</span>`;
+
+                chatMessages.appendChild(newMessage);
+                messageInput.value = '';
+                chatMessages.scrollTop = chatMessages.scrollHeight; // Scroll to the bottom
+
+                // Trigger slide-in animation
+                setTimeout(() => {
+                    newMessage.style.animation = 'slideIn 0.3s forwards';
+                }, 10);
+                messageElements.push(newMessage)
+                toggle_time()
+                console.log(messageElements)
+            }
+        }
+        function receiveMessage(messageText)
+        {
+            if(messageText.trim() !== '')
+            {
+                const newMessage = document.createElement('div');
+                newMessage.classList.add('message', 'received');
+                const formattedTime = getTime().timeStr
+                newMessage.innerHTML = `<p class="text">${messageText}</p><span class="time">${formattedTime}</span>`;
+                chatMessages.appendChild(newMessage);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+                 setTimeout(() => {
+                    newMessage.style.animation = 'slideIn 0.3s forwards';
+                }, 10);
+                messageElements.push(newMessage)
+                toggle_time()
+            }
+        }
+        // Ensure chat scrolls to bottom when opened
+        chatBox.addEventListener('transitionend', () => {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+        chatBox.addEventListener('click',e =>{
+            let timeElement = Array.from(chatBox.getElementsByClassName("time"))
+            console.log(timeElement)
+            console.log(e.target.classList.value)
+            // if (timeElement )
+            // {
+            //     timeElement.forEach(t =>{
+            //         t.style.display = "none"
+            //     })
+            // }
+        })
+    </script>
+</body>
+
+</html>

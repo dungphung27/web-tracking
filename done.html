@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Geolocation</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;700&display=swap" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css" />
+    <link rel="stylesheet" href="style.css">
+    <!-- Add this line -->
+</head>
+	<div id="map" style="width:100%; height: 80vh"></div>
+    <button class="btn btn-f fullScreen" id="fullScreen"> view full screen </button>
+    <button class="btn btn-f btn-add" id="addSafePointButton"> Xác định địa điểm tin cậy </button>
+    <div class="modal" id="form-0">
+        <div class="space"></div>
+        <div class="modal-content">
+            <h3 id="form-0-text"> Mời bạn chọn 1 điểm bất kì trên bản đồ</h3>
+            <button class="btn btn-submit" id="btn-ok">OK</button>
+            <button class="btn cancel-btn">cancel</button>
+        </div>
+    </div>
+    <!-- Modal for Confirmation -->
+    <div id="confirmationModal" class="modal">
+        <div class="space"></div>
+        <div class="modal-content">
+            <p id="modalText">Are you sure about this point?</p>
+            <button class="btn btn-submit" id="confirmYes">Yes</button>
+            <button class="btn cancel-btn" id="confirmNo">No</button>
+        </div>
+    </div>
+    
+    <!-- Modal for Radius and Icon Selection -->
+    <div id="radiusModal" class="modal">
+        <div class="space"></div>
+        <div class="modal-content">
+            <form class="modal-form" id="form-1">
+                <label for="iconSelector">Select Icon:</label>
+                <select id="iconSelector">
+                    <option value="home">Home</option>
+                    <option value="school">School</option>
+                    <option value="company">Company</option>
+                    <option value="park">Park</option>
+                </select>
+                <div class="slider-container">
+                    <label for="radiusInput">Enter Radius (meters):</label>
+                    <input type="range" id="radiusInput" min="100" max="5000" value="500" step="10">
+                    <div class="radius-value" id="radiusValue">Radius: 2500 meters</div>
+                </div>
+            </form>
+    
+            <button class="btn btn-submit" id="submitRadius">Submit</button>
+            <button class="btn cancel-btn">cancel</button>
+        </div>
+    </div>
+    
+    <!-- Modal for Naming the Marker -->
+    <div id="nameModal" class="modal">
+        <div class="space"></div>
+        <div class="modal-content">
+            <label for="nameInput">Enter a name for this marker:</label>
+            <input type="text" id="nameInput" placeholder="Enter name">
+            <button class="btn btn-submit" id="submitName">Submit</button>
+        </div>
+    </div>
+    <button class="btn btn-f btn-delete"> Xoá địa điểm tin cậy</button>
+    <div class="noti noti-success" id="noti-add-success"> Thêm địa điểm an toàn thành công </div>
+    <div class="noti noti-fail" id="noti-add-fail"> Thêm địa điểm an toàn thất bại </div>
+    <!-- Chat button -->
+    <div id="chat-button">
+        <div id="message-icon">💬</div>
+        <div class="notification" id="notification"></div>
+    </div>
+    
+    <!-- Chat box -->
+    <div id="chat-box">
+        <!-- Header -->
+        <div id="chat-header">
+            <img src="dungdeptrai.jpeg" alt="Avatar">
+            <h3>Dũng đẹp trai</h3>
+        </div>
+    
+        <!-- Chat messages -->
+        <div id="chat-messages">
+            <div class="message received">
+                <p class="text">Hello! How are you?</p>
+                <span class="time">12:00</span>
+            </div>
+            <div class="message received">
+                <p class="text">What are you doing today?</p>
+                <span class="time">12:01</span>
+            </div>
+            <div class="message sent">
+                <p class="text">I'm good, just working on a project!</p>
+                <span class="time">12:02</span>
+            </div>
+
+        </div>
+    
+        <!-- Input box -->
+        <div id="chat-input">
+            <input type="text" id="message-input" placeholder="Type a message...">
+            <i id="send-button" class="fa fa-paper-plane" aria-hidden="true"></i>
+<!-- This should now display correctly -->
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"></script>
+	<script src="leaflet-routing-machine.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol@v0.74.0/dist/L.Control.Locate.min.js"
+        charset="utf-8"></script>
+    <script src="message.js"></script>
+	<script type="module">
+        import { getDatabase, ref, set, get } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-database.js";
+        import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+            const firebaseConfig = {
+                apiKey: "AIzaSyD1Yhz7Yu5a71XbS95WEQYTR238wSSEXV8",
+                authDomain: "mygpsappducdung2709.firebaseapp.com",
+                databaseURL: "https://mygpsappducdung2709-default-rtdb.firebaseio.com",
+                projectId: "mygpsappducdung2709",
+                storageBucket: "mygpsappducdung2709.appspot.com",
+                messagingSenderId: "949884787929",
+                appId: "1:949884787929:web:949081dcf4870ef22a72c8"
+            };
+            const app = initializeApp(firebaseConfig);
+            const database = getDatabase(app);
+        let count = 0;  
+		var map = L.map('map').setView([16.038103268810023, 108.18954052883592],14);
+        var osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                minZoom: 8,
+                maxZoom: 20,
+                attribution: '&copy; CNES, Distribution Airbus DS, © Airbus DS, © PlanetObserver (Contains Copernicus Data) | &copy; <a href="https://www.stadiamaps.com/" target="_blank">Stadia Maps</a> &copy; <a href="https://openmaptiles.org/" target="_blank">OpenMapTiles</a> &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                ext: 'jpg'
+            });
+        osm.addTo(map);
+        const mapElement = document.getElementById('map');
+        let tmp = document.querySelector("#map > div.leaflet-control-container > div.leaflet-bottom.leaflet-right")
+        tmp.remove()
+        let isSeen = false
+        let elementsFunction = Array.from(document.getElementsByClassName("btn-f"))
+        function disableOtherButton(index)
+        {
+            elementsFunction.forEach((f,i)=>{
+                if (i != index)
+                    f.disabled = true;
+                else
+                    f.disabled = false
+            }) 
+        }
+        elementsFunction.forEach((f,i)=>{
+            if(i)
+            f.addEventListener('click',()=>disableOtherButton(i))
+        })
+        function enableAllFuntions()
+        {
+            elementsFunction.forEach(f => {
+                f.disabled = false;
+            })
+        }
+        window.onbeforeunload = function() {
+    getSeen();
+};
+
+        window.onunload = (()=>{
+            getSeen()
+        })
+        if (!navigator.geolocation) {
+                console.log("Your browser doesn't support geolocation feature!");
+            } else {
+                async function fetchAndUpdateLocation() {
+                return new Promise((resolve, reject) => {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            getPosition(position); // Gọi hàm của bạn ở đây
+                            console.log("Vị trí hiện tại:", {
+                                latitude: position.coords.latitude,
+                                longitude: position.coords.longitude,
+                            });
+                            resolve();
+                        },
+                        (error) => {
+                            console.error("Lỗi khi lấy vị trí:", error);
+                            reject(error);
+                        },
+                        {
+                            enableHighAccuracy: true, // Có thể bật lên để sử dụng GPS chính xác cao
+                            timeout: 50000, // Thời gian chờ tối đa để lấy vị trí
+                            maximumAge: 0, // Không sử dụng cache, luôn lấy vị trí mới
+                        }
+                    );
+                });
+            }
+            async function startFetchingLocation() {
+                while (true) {
+                    try {
+                        await fetchAndUpdateLocation();
+                        // Đợi 10 giây trước khi gọi lại hàm
+                        await new Promise(resolve => setTimeout(resolve, 100000));
+                    } catch (error) {
+                        // Nếu có lỗi, đợi 50 giây trước khi thử lại
+                        await new Promise(resolve => setTimeout(resolve, 30000));
+                    }
+                }
+            }
+            startFetchingLocation();
+            }
+        document.getElementById('fullScreen').addEventListener('click', function () {
+                if (mapElement.requestFullscreen) {
+                    mapElement.requestFullscreen();
+                } else if (mapElement.mozRequestFullScreen) { // Firefox
+                    mapElement.mozRequestFullScreen();
+                } else if (mapElement.webkitRequestFullscreen) { // Chrome, Safari and Opera
+                    mapElement.webkitRequestFullscreen();
+                } else if (mapElement.msRequestFullscreen) { // IE/Edge
+                    mapElement.msRequestFullscreen();
+                }
+            });
+        var locateControl = null
+        var marker, circle = null;
+        var oldLat,oldlong;
+        let activeCircle = null; // Store active circle for toggling
+        let activeMarker = null; // Track the currently active marker
+        let isCircleVisible = false;
+        let markersArray = [], markerCount = { home: 0, school: 0, company: 0, park: 0 };
+        let btn_cancel = Array.from(document.getElementsByClassName("cancel-btn"))
+        chatButton.onclick= (() =>{
+            isSeen = true
+            chatNoti.style.display = "none"
+            if (isClosing) return;
+            if (chatBox.classList.contains('open')) {
+                chatBox.classList.add('closing');
+                isClosing = true;
+                setTimeout(() => {
+                    chatBox.classList.remove('open', 'closing');
+                    isClosing = false;
+                }, 400); // Time matches the transition duration
+            } else {
+                chatBox.classList.add('open');
+            }
+        });
+        function toggle_noti()
+        {
+            if (isSeen)
+                chatNoti.style.display = "none"
+            else
+                chatNoti.style.display = "inline"
+        }
+        chatBox.onclick = (()=>{
+            isSeen = true;
+            toggle_noti()
+        })
+        add_safe_point_mode()
+        function add_safe_point_mode() {
+        let circle_select = null
+        let btn_submit = Array.from(document.getElementsByClassName("btn-submit"))
+        let btn_ok = document.getElementById("btn-ok")
+        let isDrag = false;
+        let list_form = ['', 'form-0', 'confirmationModal', 'radiusModal']
+        let form_state = 0;
+        let tempMarker, permanentMarker
+        let addMode = false; // Flag for adding mode
+        let currentLatLng = null;
+        var marker_select
+        var offsetX, offsetY
+        let activeMove
+        let list_space = Array.from(document.getElementsByClassName("space"))
+        let list_p_space = []
+        list_space.forEach(p => {
+            list_p_space.push(p.parentElement)
+        })
+        function getIcon(type) {
+            let iconUrl;
+            switch (type) {
+                case 'home':
+                    iconUrl = 'house.png';
+                    break;
+                case 'school':
+                    iconUrl = 'school.png';
+                    break;
+                case 'company':
+                    iconUrl = 'company.png';
+                    break;
+                case 'park':
+                    iconUrl = 'park.png';
+                    break;
+                default:
+                    iconUrl = 'https://cdn-icons-png.flaticon.com/512/25/25694.png';
+                    }
+            let iconSize = [30, 30];
+            return L.icon({
+                    iconUrl: iconUrl,
+                    iconSize: iconSize,
+                });
+        }
+       
+        function loadMarkersFromFirebase() {
+            const dbRef = ref(database, 'markers');
+            get(dbRef).then((snapshot) => {
+                if (snapshot.exists()) {
+                    const markersData = snapshot.val();
+                    for (const key in markersData) {
+                        if (markersData.hasOwnProperty(key)) {
+                            const latlng = markersData[key].latlng;
+                            const markerId = markersData[key].markerId;
+                            const name = markersData[key].name;
+                            const radius = markersData[key].radius;
+                            const type = markersData[key].type;
+                            markerCount[type]++;
+                            let new_marker = { name: name, type: type, radius: radius, latlng: latlng, markerId: markerId }
+                            const marker_save = L.marker(latlng, { icon: getIcon(type), className: 'leaflet-marker-icon' })
+                                .bindPopup(`<b>${name}</b><br>Radius: ${radius}`);
+                            new_marker.marker = marker_save
+                            markersArray.push(new_marker)
+                            marker_save.addTo(map)
+                            marker_save.on('click', function () {
+                            if (!isCircleVisible) {
+                                activeCircle = L.circle(latlng, { radius: radius }).addTo(map);
+                                    marker_save.openPopup();
+                                    activeMarker = marker_save; // Store the active marker
+                            } else {
+                            if (activeCircle) map.removeLayer(activeCircle); // Remove the circle if it exists
+                                    marker_save.closePopup();
+                            }
+                            isCircleVisible = !isCircleVisible; // Toggle the state
+                            });
+                            console.log(`Marker ${markerId} loaded: ${name}`);
+                            console.log(markersArray)
+                        }
+                }
+                        } else {
+                            console.log("No markers found in Firebase.");
+                        }
+                    })
+                    .then(()=>{
+                        getDistances(start);
+                    })
+                    .catch((error) => {
+                        console.error("Error fetching markers: ", error);
+                    });
+                }
+                window.onload = (() => {
+                    loadMarkersFromFirebase();
+                    loadMessagesFromFirebase();
+                });
+                
+                list_p_space.forEach(space => {
+                    space.addEventListener("mousedown", e => {
+                        const str = e.target.tagName
+                        if (str != "INPUT" && str != "SELECT" && str != "OPTION") {
+                            console.log(e)
+                            isDrag = true;
+                            activeMove = space
+                            offsetX = e.clientX - activeMove.offsetLeft;
+                            offsetY = e.clientY - activeMove.offsetTop;
+                        }
+                    })
+                })
+                function get_id() {
+                    let i = 1;
+                    if (!markersArray.length) return i;
+                    markersArray.forEach(m => {
+
+                        if (m.markerId != i) {
+                            return i
+                        }
+                        i++;
+                    })
+                    return markersArray.length + 1;
+                }
+                list_p_space.forEach(p => {
+                    document.addEventListener("mousemove", function (e) {
+                        if (isDrag) {
+                            p.style.left = (e.clientX - offsetX) + "px";
+                            p.style.top = (e.clientY - offsetY) + "px";
+                        }
+                    });
+
+                    document.addEventListener("mouseup", function () {
+                        isDrag = false;
+                    });
+                })
+                function resetModal() {
+                    list_p_space.forEach(p => {
+                        console.log(p)
+                        p.style.left = 50 + "%"
+                        p.style.top = 50 + "%"
+                    })
+                }
+                btn_cancel.forEach(btn => {
+                    btn.onclick = (() => {
+                        btn.parentElement.parentElement.style.display = 'none';
+                        form_state = 0;
+                        addMode = false
+                        if (tempMarker) map.removeLayer(tempMarker);
+                        if (circle_select) map.removeLayer(circle_select)
+                        circle_select = null
+                        resetModal()
+                        enableAllFuntions()
+                        showNotification(0)
+                        isSubmited = 0
+                    })
+                })
+                btn_ok.onclick = (() => {
+                    btn_ok.parentElement.parentElement.style.display = 'none';
+                    addMode = true;
+                })
+                document.getElementById('addSafePointButton').onclick = function () {
+                    resetModal()
+                    toggleForm(list_form[0], list_form[1]);
+                    form_state++;
+                };
+                function showNotification(isSuccess) {
+                    let noti;
+                    if (isSuccess) noti = document.getElementById("noti-add-success")
+                    else noti = document.getElementById("noti-add-fail")
+                    // Hiện thông báo (trượt từ trên xuống)
+                    noti.style.top = '20px';
+                    // Sau 3 giây, trượt thông báo lên lại
+                    setTimeout(() => {
+                        noti.style.top = '-100px';
+                    }, 1500);
+                }
+                let isSubmited = 0;
+                map.on('click', function (e) {
+                    console.log(e)
+                    if (!addMode) return; // Only allow interaction if in adding mode
+                    if (isSubmited === 0) {
+                        tempMarker = L.marker(e.latlng).addTo(map); // Place new temporary marker
+                        currentLatLng = e.latlng;
+                        isSubmited = 1;
+                        showCustomModal('Are you sure about this point?', function (confirmed) {
+                            if (confirmed) {
+                                form_state++;
+                                showRadiusAndIconModal(currentLatLng); // Proceed with icon and radius input
+                            } else {
+                                map.removeLayer(tempMarker); // User did not confirm, remove the marker
+                                currentLatLng = null;
+                                isSubmited = 0;
+                            }
+                        });
+                    }
+                });
+                function toggleForm(old_form, new_form) {
+                    var n_form = document.getElementById(new_form);
+                    var o_form = document.getElementById(old_form);
+                    if (old_form != '') {
+                        o_form.style.display = 'none';
+                    }
+                    if (new_form != '') {
+                        n_form.style.display = 'block'
+                    }
+                }
+                function showCustomModal(text, callback) {
+                    document.getElementById('modalText').innerText = text;
+                    document.getElementById('confirmationModal').style.display = 'block';
+
+                    document.getElementById('confirmYes').onclick = function () {
+                        callback(true);
+                        document.getElementById('confirmationModal').style.display = 'none';
+                    };
+                    document.getElementById('confirmNo').onclick = function () {
+                        callback(false);
+                        document.getElementById('confirmationModal').style.display = 'none';
+                    };
+                }
+                function showRadiusAndIconModal(latlng) {
+                    document.getElementById('radiusModal').style.display = 'block';
+                    let slider = document.getElementById('radiusInput')
+                    const radiusValue = document.getElementById("radiusValue");
+                    slider.oninput = function () {
+                        if (circle_select) map.removeLayer(circle_select)
+                        const radiusInMeters = this.value;
+                        circle_select = L.circle(latlng, { radius: radiusInMeters }).addTo(map)
+                        radiusValue.innerHTML = "Radius: " + radiusInMeters + " meters";
+                    }
+                    document.getElementById('submitRadius').onclick = function () {
+                        let selectedIconType = document.getElementById('iconSelector').value;
+                        let radius = slider.value
+                        if (radius) {
+                            markerCount[selectedIconType]++;
+                            let defaultName = `${selectedIconType} ${markerCount[selectedIconType]}`;
+                            document.getElementById('radiusModal').style.display = 'none'
+                            showNameModal(defaultName, latlng, selectedIconType, radius);
+                        }
+                    };
+                }
+
+                function showNameModal(defaultName, latlng, iconType, radius) {
+                    document.getElementById('nameModal').style.display = 'block';
+                    document.getElementById('submitName').onclick = function () {
+                        let name = document.getElementById('nameInput').value || defaultName;
+                        document.getElementById('nameModal').style.display = 'none';
+                        marker_select = L.marker(latlng, { icon: getIcon(iconType) }).addTo(map)
+                            .bindPopup(`<b>${name}</b><br>Radius: ${radius}`);
+                        saveMarker(name, iconType, radius, latlng, marker_select)
+                        console.log(markersArray)
+                        addMode = false; // Exit add mode after finalizing the marker
+                        isSubmited = 0;
+                    };
+                }
+                function saveMarker(name, type, radius, latlng, marker1) {
+                    let n = get_id()
+                    let new_marker = { name: name, type: type, radius: radius, latlng: { lat: latlng.lat, lng: latlng.lng }, markerId: n, marker: marker1 }
+                    markersArray.push(new_marker);
+                    enableAllFuntions()
+                    const markerRef = ref(database, `markers/${new_marker.markerId}`); // Tham chiếu đến vị trí muốn lưu marker
+                    set(markerRef, { name: name, type: type, radius: radius, latlng: { lat: latlng.lat, lng: latlng.lng }, markerId: n })
+                        .then(() => {
+                            console.log("Marker added successfully");
+                        })
+                        .catch((error) => {
+                            console.error("Error adding marker: ", error);
+                        });
+                    map.removeLayer(circle_select)
+                    resetModal()
+                    showNotification(1)
+                    marker1.on('click', function () 
+                    {
+                        if (!isCircleVisible) {
+                            activeCircle = L.circle(latlng, { radius: radius }).addTo(map);
+                            marker1.openPopup();
+                            activeMarker = marker1; // Store the active marker
+                        } else {
+                            if (activeCircle) map.removeLayer(activeCircle); // Remove the circle if it exists
+                            marker1.closePopup();
+                        }
+                        isCircleVisible = !isCircleVisible; // Toggle the state
+                    });
+                    map.removeLayer(tempMarker);
+                }
+                map.on('click', function (e) {
+                    if (activeMarker && !activeMarker.getLatLng().equals(e.latlng)) {
+                        if (activeCircle) {
+                            map.removeLayer(activeCircle);
+                            activeMarker.closePopup();
+                            isCircleVisible = false;
+                        }
+                    }
+                });
+                // biến cần lưu: markerArray
+            }
+            let address
+            let currentRoute = null;
+        
+        async function addMessageToData(text,type) {
+                await sendMessage(text,type)
+                let n = messageElements.length
+                console.log(n)
+                if(!type)
+                {
+                    isSeen = false
+                    toggle_noti()
+                }
+                text.id = n
+                text.type = type
+                console.log(text)
+                if(text.value.trim() != '' )
+                {
+                    const textRef = ref(database, `messages/${text.id}`); // Tham chiếu đến vị trí muốn lưu marker
+                    set(textRef, text)
+                    .then(() => {
+                        console.log("message added successfully");
+                    })
+                    .catch((error) => {
+                        console.error("Error adding message: ", error);
+                    });
+                }
+            }   
+            async function main(text,type) {
+                    let str = await get_index_time(text);
+                    addMessageToData(str,type)
+                }
+                sendButton.onclick = (() => {
+                    main('',1);
+                })
+                messageInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        main('',1);
+                    }
+                });
+                function loadMessagesFromFirebase() {
+                        const seen = ref(database,'isSeen')
+                        get(seen).then((snapshot)=>{
+                            if (snapshot.exists())
+                            {
+                                isSeen = snapshot.val()
+                                toggle_noti()
+                            }   
+                        })
+                        .then(()=>{
+                            console.log("seen: ",isSeen)
+                        })
+                        .catch((error)=>{
+                            console.log("Error fetching seen data: ", error)
+                        })
+                        const dbRef = ref(database, 'messages');
+                        get(dbRef).then((snapshot) => {
+                            if (snapshot.exists()) {
+                                const messagesData = snapshot.val();
+                                for (const key in messagesData) {
+                                    if (messagesData.hasOwnProperty(key)) {
+                                        const  message = messagesData[key]
+                                        sendMessage(message,message.type)
+                                    }
+                                }
+                            } else {
+                                console.log("No messages found in Firebase.");
+                            }
+                        }).catch((error) => {
+                            console.error("Error fetching messages: ", error);
+                        });
+                    }
+        let userIcon = L.icon({
+                iconUrl: 'marker.png',
+                iconSize: [40,40],
+
+            });
+            // app.js
+// app.js
+let old = null,idString
+function getDistances(start) {
+    console.log(markersArray.length)
+    let ends = markersArray.map(marker => ({
+      lat: marker.latlng.lat,
+      lng: marker.latlng.lng,
+      name: marker.name,
+      radius: marker.radius,
+      id: marker.markerId
+    }));
+    console.log(10000,ends)
+
+  const worker = new Worker('worker.js');
+  worker.onmessage = function(event) {
+    const { distances } = event.data;
+    idString = distances.map(d => d.id).join(', ')
+    if(!idString) idString = 0
+    console.log(distances)
+    if(idString != old)
+  {
+    if(distances.length)
+  {
+    const namesString = distances.map(item => item.name).join(', ');
+    main(`Người được giám sát đang ở vùng an toàn ${namesString}`,0)
+  } else{
+    main(`Người được giám sát không ở trong khu vực an toàn`,0)
+  }
+    distances.forEach(distanceObj => {
+      console.log(`Khoảng cách đến ${distanceObj.name}: ${distanceObj.distance} km`);
+    });
+  };
+}
+  old = idString
+  // Gửi dữ liệu start và ends (mảng các marker) tới worker
+  worker.postMessage({ start, ends });
+}
+
+// Ví dụ dữ liệu
+const start = { lat: 16.072116636493035 , lng: 108.22014346779358 };
+const ends = [
+  { name: 'Marker A', lat: 10.776889, lng: 106.700981 },
+  { name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },
+  { name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },{ name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },{ name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },{ name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },{ name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },{ name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },{ name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },{ name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },{ name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },{ name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },{ name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },{ name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },{ name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },{ name: 'Marker B', lat:16.03808263094596,  lng: 108.18956198313644  },
+  // Thêm các marker khác
+];
+let clientMarker = L.icon({
+    iconUrl:'marker.svg',
+    iconSize: [20,20]
+})
+ let cliMarker = null
+        let tmp1 = false
+        function getPosition(position)
+        {
+            let currentZoom = map.getZoom(); // Lấy độ zoom hiện tại
+            var userLat = 16.072472100976857
+            var userLong = 108.22016532762554
+            var lat = position.coords.latitude// Vĩ độ (latitude)
+            var long = position.coords.longitude;  // Kinh độ (longitude)
+            var accuracy = position.coords.accuracy
+            if ( cliMarker) map.removeLayer(cliMarker)
+            cliMarker = L.marker([lat,long],{icon: clientMarker}).addTo(map)
+            oldLat = lat
+            oldlong = long
+            if(marker) {
+                map.removeLayer(marker)
+            }
+            if(circle) {
+                map.removeLayer(circle)
+            }
+            console.log("Độ zoom hiện tại: " + currentZoom);
+            marker = L.marker([userLat, userLong])
+                .addTo(map)
+                .bindPopup("<div id='content-popup' style='width: " + (currentZoom * 10) + "px; height: " + (currentZoom * 15) + "px;'><h3 style ='font-size : 100%'> Dũng đẹp trai </h3> <img src='dungdeptrai.jpeg' style='width: 100%; height: 112,5%;'/> <br><input id='popupInput' type='text' placeholder='Nhập tin nhắn' style='width: 90%;font-size : " + (currentZoom - 8) * 10 + "% + 120%'> </input></div>")
+                .openPopup()
+            map.on('zoomstart', function () {
+                marker.closePopup();  
+            });
+            map.on('zoomend', function () {
+                currentZoom = map.getZoom();
+                console.log("Độ zoom sau khi thay đổi: " + currentZoom);
+                marker =  marker.bindPopup("<div id='content-popup' style='width: " + (currentZoom * 10) + "px; height: " + (currentZoom * 15) + "px;'><h3 style ='font-size : 100%'> Dũng đẹp trai </h3> <img src='dungdeptrai.jpeg' style='width: 100%; height: 112,5%;'/> <br><input id='popupInput' type='text' placeholder='Nhập tin nhắn' style='width: 90%;font-size :  " + (currentZoom - 8) * 10 + "% +100%'> </input></div>") 
+            });
+            circle = L.circle([userLat, userLong], { radius: 90.0 }).addTo(map);
+            console.log("Your coordinate is: Lat: " + oldLat + " Long: " + oldlong + " Accuracy: " + accuracy);            
+            map.on('keydown', function () {
+                let inputField = document.getElementById('popupInput');
+                inputField.addEventListener('keypress', function (event) {
+                    if (event.key === 'Enter') {
+                        event.preventDefault();
+                        main(inputField.value,1);
+                        isSeen = false;
+                        toggle_noti()
+                        inputField.value = '';
+                    }
+                });
+            });            
+            if (currentRoute) {
+                currentRoute.getPlan().setWaypoints([]).addTo(map);  // Xóa tuyến đường hiện tại
+            }
+            let address1;
+            function getAddressFromCoordinates(latitude, longitude) {
+                const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data && data.display_name) {
+                            address1 = data.display_name.toString();
+                            console.log(address1);
+                        }
+                    })
+                    .then(() => {
+                        currentRoute = L.Routing.control({
+                            waypoints: [
+                                L.latLng(oldLat, oldlong),
+                                L.latLng(latitude, longitude)
+                            ],
+                            createMarker: function () { return null; },
+                            lineOptions: {
+                                addWaypoints: false, // Tắt tương tác với đường
+                            },
+                            waypointMode: "remove",
+                            summaryTemplate: `<h2>${address1}</h2><h3>{distance}, {time}</h3>`,
+                              showAlternatives: false,
+
+                        }).on('routesfound', function (e) {
+                            console.log(e);
+                            var routes = e.routes;
+                            console.log(2,routes[0].summary.totalDistance)
+                        }).addTo(map)
+                        currentRoute._clearLines()
+                    })
+                    .then(() => {
+                        let list = document.querySelector(".leaflet-top.leaflet-right");
+                        let childList = list.getElementsByClassName("leaflet-routing-container leaflet-bar leaflet-control");
+                        let sl = childList.length;
+                        if (sl > 1)
+                            list.removeChild(list.firstChild);
+                    })
+                    .then(()=>{
+                        if (!tmp1) tmp1 = true;
+                        else getDistances(start);
+                    })
+                    .catch(error => console.error('Error:', error));
+            }
+            getAddressFromCoordinates(userLat, userLong);   
+        }
+        function getSeen()
+        {
+            const seenRef = ref(database, 'isSeen'); // Tham chiếu đến vị trí muốn lưu marker
+                    set(seenRef, isSeen)
+                    .then(() => {
+                        console.log("seen data added successfully");
+                    })
+                    .catch((error) => {
+                        console.error("Error adding message: ", error);
+                    });
+        }
+        console.log(markersArray)
+        function get_distance(marker)
+        {
+            let distance
+            L.Routing.control({
+                            waypoints: [
+                                L.latLng(16.03812387594597, 108.18952979662883),
+                                L.latLng(16.072137255469055, 108.22015419662947)
+                            ],
+                            createMarker: function () { return null; },
+                           
+                        }).getRouter((err, routes) => {
+                if (err) {
+                    console.error(err);
+                    return;
+                }
+
+                const distance = routes[0].summary.totalDistance; // Khoảng cách tính bằng mét
+                console.log(`Khoảng cách giữa hai điểm: ${(distance / 1000).toFixed(2)} km`);
+            });
+        }
+	</script>
+</body>
+</html>

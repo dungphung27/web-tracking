@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Message Design</title>
+    <style>
+        /* Tổng quan khung tin nhắn */
+        #chat-messages {
+            padding: 20px;
+            background-color: #1e1e1e;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        .message-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .message {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #2e2e2e;
+            border-radius: 20px;
+            padding: 10px 15px;
+            max-width: 300px;
+            color: white;
+            font-family: -apple-system, BlinkMacSystemFont, "San Francisco",
+                "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
+            transition: background-color 0.3s ease;
+        }
+
+        /* Phần văn bản tin nhắn */
+        .message .text {
+            margin: 0;
+        }
+
+        /* Phần biểu tượng (emoji, reply, dots) */
+        .icons {
+            position: absolute;
+            right: -30px;
+            /* Đặt icon nằm ngoài message */
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            border-radius: 20px;
+            background-color: #2e2e2e;
+            transform: translateY(-50%);
+            display: flex;
+             opacity: 0;
+            transition: opacity 0.3s ease;
+            /* Hiệu ứng mượt khi hover */
+        }
+
+        .icon {
+            
+            color: #999;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .icon:hover {
+            color: white;
+        }
+
+        .icon.dots::before {
+            content: "⋮";
+        }
+
+        /* Hiển thị icon khi hover vào message */
+        .message-container:hover .icons {
+           
+            opacity: 1;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="chat-messages">
+        <div class="message-container">
+            <div class="message">
+                <p class="text">Hôm qua</p>
+            </div>
+            <div class="icons">
+                <span class="icon dots"></span>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tra cứu địa chỉ từ tọa độ</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+
+        input[type="text"] {
+            width: 300px;
+            padding: 10px;
+            margin-right: 10px;
+        }
+
+        button {
+            padding: 10px;
+        }
+
+        #map {
+            height: 400px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Tra cứu tọa độ từ địa chỉ</h1>
+    <input type="text" id="address" placeholder="Nhập địa chỉ">
+    <button onclick="searchCoordinates()">Tìm kiếm</button>
+
+    <div id="result"></div>
+    <div id="map"></div>
+
+    <h2>Tra cứu địa chỉ từ tọa độ</h2>
+    <input type="text" id="latitude" placeholder="Nhập vĩ độ">
+    <input type="text" id="longitude" placeholder="Nhập kinh độ">
+    <button onclick="searchAddress()">Tìm địa chỉ</button>
+
+    <div id="addressResult"></div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        let map;
+        let marker;
+
+        function initializeMap() {
+            map = L.map('map').setView([0, 0], 2); // Khởi tạo bản đồ với tâm ở vĩ độ 0, kinh độ 0
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+            }).addTo(map);
+        }
+
+        function getCoordinates(address) {
+            const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const resultDiv = document.getElementById('result');
+                    if (data.length > 0) {
+                        const latitude = data[0].lat;
+                        const longitude = data[0].lon;
+                        resultDiv.innerHTML = `Latitude: ${latitude}, Longitude: ${longitude}`;
+                        updateMap(latitude, longitude);
+                    } else {
+                        resultDiv.innerHTML = "Không tìm thấy địa chỉ";
+                        if (marker) {
+                            map.removeLayer(marker);
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    document.getElementById('result').innerHTML = "Đã xảy ra lỗi trong quá trình tìm kiếm";
+                });
+        }
+
+        function updateMap(latitude, longitude) {
+            // Cập nhật bản đồ
+            if (marker) {
+                map.removeLayer(marker); // Xóa marker cũ nếu có
+            }
+            marker = L.marker([latitude, longitude]).addTo(map); // Thêm marker mới
+            map.setView([latitude, longitude], 15); // Di chuyển bản đồ tới vị trí của marker
+        }
+
+        function searchCoordinates() {
+            const address = document.getElementById('address').value;
+            getCoordinates(address);
+        }
+
+        function getAddressFromCoordinates(latitude, longitude) {
+            const url = `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    const addressResultDiv = document.getElementById('addressResult');
+                    console.log( data.display_name)
+                    if (data && data.display_name) {
+                        addressResultDiv.innerHTML = `Địa chỉ: ${data.display_name}`;
+                    } else {
+                        addressResultDiv.innerHTML = "Không tìm thấy địa chỉ";
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+
+        function searchAddress() {
+            const latitude = document.getElementById('latitude').value;
+            const longitude = document.getElementById('longitude').value;
+            getAddressFromCoordinates(latitude, longitude);
+        }
+
+        // Khởi tạo bản đồ khi tải trang
+        window.onload = initializeMap;
+    </script>
+</body>
+
+</html>

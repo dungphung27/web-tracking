@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Icon with Notification</title>
+    <style>
+        .icon-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .heart-icon {
+            width: 50px;
+            height: 50px;
+            border: 2px solid white;
+            border-radius: 50%;
+            background-color: transparent;
+            position: relative;
+        }
+
+        .heart-icon::before {
+            content: '♥';
+            font-size: 40px;
+            color: white;
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            font-weight: bold;
+        }
+
+        .notification {
+            width: 15px;
+            height: 15px;
+            background-color: #ff3040;
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            right: 0;
+            border: 2px solid black; /* For the dark background effect */
+        }
+
+        body {
+            background-color: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="icon-container">
+        <div class="heart-icon"></div>
+        <div class="notification"></div>
+    </div>
+</body>
+</html>

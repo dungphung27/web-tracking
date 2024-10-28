@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Chat Message Design</title>
+	<style>
+		/* Tổng quan khung tin nhắn */
+		#chat-messages {
+			padding: 20px;
+			background-color: #1e1e1e;
+			height: 100vh;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+		}
+
+		.message-container {
+			position: relative;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.message {
+			background-color: #2e2e2e;
+			border-radius: 20px;
+			padding: 10px 15px;
+			max-width: 300px;
+			color: white;
+			font-family: -apple-system, BlinkMacSystemFont, "San Francisco",
+				"Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
+			transition: background-color 0.3s ease;
+		}
+
+		/* Phần văn bản tin nhắn */
+		.message .text {
+			margin: 0;
+		}
+
+		/* Phần biểu tượng (emoji, reply, dots) */
+		.icons {
+			display: flex;
+			margin-left: 5px;
+			opacity: 0;
+			align-items: center;
+			align-content: center;
+			justify-content: center;
+			width: 30px;
+			height: 30px;
+			border-radius: 50%;
+			background-color: #2e2e2e;
+			transition: opacity 0.4s ease, transform 0.4s ease;
+		}
+
+		.icon {
+			font-size: 20px;
+			align-self: center;
+			color: #999;
+			cursor: pointer;
+			transition: color 0.3s ease;
+		}
+
+		.icon:hover {
+			color: white;
+		}
+
+		/* Hiển thị biểu tượng khi hover */
+		.message-container:hover .icons {
+			opacity: 1;
+		}
+
+		/* Popup chứa nút "Remove" */
+		.popup {
+			display: none;
+			position: absolute;
+			top: 30px;
+			right: 0;
+			background-color: #333;
+			color: white;
+			border-radius: 10px;
+			padding: 10px;
+			box-shadow: 0px 2px 10px rgba(0, 0, 0, 0.5);
+			z-index: 1;
+		}
+
+		.popup button {
+			background-color: #ff4d4d;
+			color: white;
+			border: none;
+			padding: 5px 10px;
+			border-radius: 5px;
+			cursor: pointer;
+		}
+
+		.popup button:hover {
+			background-color: #ff1a1a;
+		}
+	</style>
+</head>
+
+<body>
+	<div id="chat-messages">
+		<div class="message-container">
+			<div class="message sent">
+				<p class="text">Hôm qua</p>
+			</div>
+			<div class="icons">
+				<span class="icon dots" onclick="togglePopup(this)">⋮</span>
+				<div class="popup">
+					<button onclick="removeMessage(this)">Remove</button>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script>
+		// Hiển thị hoặc ẩn popup khi nhấn vào dấu ba chấm
+		function togglePopup(dotElement) {
+			const popup = dotElement.nextElementSibling;
+			popup.style.display = popup.style.display === 'block' ? 'none' : 'block';
+		}
+
+		// Xóa tin nhắn khi nhấn nút Remove
+		function removeMessage(buttonElement) {
+			const messageContainer = buttonElement.closest('.message-container');
+			messageContainer.remove();
+		}
+
+		// Ẩn popup nếu nhấn ngoài vùng popup
+		document.addEventListener('click', function (event) {
+			const isClickInsidePopup = event.target.closest('.popup') || event.target.classList.contains('dots');
+			if (!isClickInsidePopup) {
+				document.querySelectorAll('.popup').forEach(popup => popup.style.display = 'none');
+			}
+		});
+	</script>
+</body>
+
+</html>
