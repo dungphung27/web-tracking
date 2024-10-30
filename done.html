@@ -134,8 +134,6 @@
             });
         osm.addTo(map);
         const mapElement = document.getElementById('map');
-        let tmp = document.querySelector("#map > div.leaflet-control-container > div.leaflet-bottom.leaflet-right")
-        tmp.remove()
         let isSeen = false
         let elementsFunction = Array.from(document.getElementsByClassName("btn-f"))
         function disableOtherButton(index)
@@ -729,6 +727,9 @@ let clientMarker = L.icon({
                     })
                     .then(() => {
                         currentRoute = L.Routing.control({
+                            router: L.routing.osrmv1({
+            serviceUrl: 'http://localhost:5001/route/v1' // Địa chỉ OSRM
+        }),
                             waypoints: [
                                 L.latLng(oldLat, oldlong),
                                 L.latLng(latitude, longitude)
@@ -737,10 +738,7 @@ let clientMarker = L.icon({
                             lineOptions: {
                                 addWaypoints: false, // Tắt tương tác với đường
                             },
-                            waypointMode: "remove",
                             summaryTemplate: `<h2>${address1}</h2><h3>{distance}, {time}</h3>`,
-                              showAlternatives: false,
-
                         }).on('routesfound', function (e) {
                             console.log(e);
                             var routes = e.routes;

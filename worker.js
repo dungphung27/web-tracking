@@ -4,7 +4,7 @@ self.onmessage = function(event) {
 
   // Hàm tìm nearest point gần nhất bằng OSRM nearest API
   function getNearestPoint(lng, lat) {
-    const nearestUrl = `https://router.project-osrm.org/nearest/v1/driving/${lng},${lat}?number=1`;
+    const nearestUrl = `http://localhost:5001/nearest/v1/driving/${lng},${lat}`;
     return fetch(nearestUrl)
       .then(response => {
         if (!response.ok) {
@@ -29,8 +29,7 @@ self.onmessage = function(event) {
   const fetchPromises = ends.map(async (end) => {
     const nearestStart = await getNearestPoint(start.lng, start.lat); 
     const nearestEnd = await getNearestPoint(end.lng, end.lat); 
-
-    const url = `https://router.project-osrm.org/route/v1/driving/${nearestStart.lng},${nearestStart.lat};${nearestEnd.lng},${nearestEnd.lat}?overview=false`;
+    const url = `http://localhost:5001/route/v1/driving/${nearestStart.lng},${nearestStart.lat};${nearestEnd.lng},${nearestEnd.lat}?overview=false`;
 
     return fetch(url)
       .then(response => {
@@ -41,7 +40,7 @@ self.onmessage = function(event) {
       })
       .then(data => {
         const distance = data.routes[0].distance; 
-        if(distance <= end.radius)
+        // if(distance <= end.radius)
             distances.push({ name: end.name,lat: end.lat,lng:end.lng,radius: end.radius,id: end.id, distance: distance / 1000 }); // Lưu khoảng cách theo km và tên marker
       })
       .catch(error => {
